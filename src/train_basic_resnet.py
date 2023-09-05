@@ -9,34 +9,38 @@ from data_utils import get_cifar_loaders
 from model_utils import get_basic_resnet
 
 wandb.login()
-name_run="Basic resnet"
 
-wandb.init(
-    project="ReMLP",
-    name=name_run
-)
+batch_size = 32
+n_epoch = 40
+lrs = [1e-5, 1e-4, 1e-3, 1e-2]
 
-model = get_basic_resnet()
-trainloader, testloader, _ = get_cifar_loaders()
+for lr in lrs:
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
+    name_run = f"Basic resnet lr={lr}, batch_size={batch_size}"
 
-n_epoch = 10
+    wandb.init(
+        project="ReMLP",
+        name=name_run
+    )
 
-all_train_stats = []
-all_val_stats = []
+    model = get_basic_resnet()
+    trainloader, testloader, _ = get_cifar_loaders(batch_size=batch_size)
 
-for epoch in range(n_epoch):  
-    train_stats = train_epoch(model, optimizer, criterion, trainloader, epoch)
-    val_stats = val_epoch(model, criterion, testloader, epoch)
-    all_train_stats.append(train_stats)
-    all_val_stats.append(val_stats)
-    
-best_train_stats = determ_best_stats(all_train_stats)
-best_val_stats = determ_best_stats(all_val_stats)
-log_wandb(best_train_stats, "best_train")
-log_wandb(best_val_stats, "best_val")
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
 
-    
-wandb.finish()
+    all_train_stats = []
+    all_val_stats = []
+
+    for epoch in range(n_epoch):  
+        train_stats = train_epoch(model, optimizer, criterion, trainloader, epoch)
+        val_stats = val_epoch(model, criterion, testloader, epoch)
+        all_train_stats.append(train_stats)
+        all_val_stats.append(val_stats)
+        
+    best_train_stats = determ_best_stats(all_train_stats)
+    best_val_stats = determ_best_stats(all_val_stats)
+    log_wandb(best_train_stats, "best_train")
+    log_wandb(best_val_stats, "best_val")
+
+    wandb.finish()

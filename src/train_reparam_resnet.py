@@ -2,35 +2,30 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import wandb
-
-from train_utils import train_epoch, val_epoch
+from train_utils import train_epoch, val_epoch              
 from metric_utils import determ_best_stats, log_wandb
 from data_utils import get_cifar_loaders
-from model_utils import get_reparam_resnet
+from model_utils import get_reparam_resnet       
 
 wandb.login()
 
-n_epoch = 15
+reductions = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3]
+size_thresh = 512
+save_low_param = False
 
-all_hidden_sizes = [ 
-                    [64, 128, 128, 128], 
-                    [64, 128, 128, 128, 128], 
-                    [128, 256, 256, 256], 
-                    [128, 256, 256, 256, 256], 
-                    [256, 256, 256, 256, 256],
-                    [256, 256, 256, 256, 256, 256]
-                    ]
+batch_size = 384
+n_epoch = 250
+lr = 1e-2
 
-for hidden_sizes in all_hidden_sizes:
-
-    model = get_reparam_resnet(hidden_sizes)
-    trainloader, testloader, _ = get_cifar_loaders()
+for reduction in reductions:
+    print(reduction)
+    model = get_reparam_resnet(reduction, size_thresh, save_low_param)
+    trainloader, testloader, _ = get_cifar_loaders(batch_size=batch_size)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-4)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
 
-    subname = "_".join(str(i) for i in hidden_sizes)
-    name_run=f"Reparam resnet mlp_{subname}"
+    name_run=f"Reparam resnet, red={reduction}, size_thresh={size_thresh}, bs={batch_size}, lr={lr}, save_low_param={save_low_param} "
 
     wandb.init(
         project="ReMLP",
@@ -52,4 +47,4 @@ for hidden_sizes in all_hidden_sizes:
     log_wandb(best_val_stats, "best_val")
 
         
-    wandb.finish()
+    wandb.finish()                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
