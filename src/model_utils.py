@@ -7,9 +7,6 @@ from math import sqrt
 class ReMPL(nn.Module):
     def __init__(self, conv, reduction=1, size_thresh=128, save_low_param=False):
         super().__init__()
-        
-
-
         self.n_1, self.n_2 = conv.weight.shape[0], conv.weight.shape[1]
         self.kernel_shape = conv.weight.shape[2:]
         
